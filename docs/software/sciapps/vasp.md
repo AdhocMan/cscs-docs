@@ -6,42 +6,32 @@
     See the [main applications page][ref-software] for more information.
 
 The Vienna Ab initio Simulation Package ([VASP]) is a computer program for atomic scale materials modelling, e.g. electronic structure calculations and quantum-mechanical molecular dynamics, from first principles.
+A precompiled uenv with GPU support (MPI, OpenMP, OpenACC, HDF5, and Wannier90) is available on Daint.
 
-VASP computes an approximate solution to the many-body Schrödinger equation, either within density functional theory (DFT), solving the Kohn-Sham equations, or within the Hartree-Fock (HF) approximation, solving the Roothaan equations.
-Hybrid functionals that mix the Hartree-Fock approach with density functional theory are implemented as well.
-Furthermore, Green's functions methods (GW quasiparticles, and ACFDT-RPA) and many-body perturbation theory (2nd-order Møller-Plesset) are available in VASP.
+??? note "Background"
+    VASP computes an approximate solution to the many-body Schrödinger equation, either within density functional theory (DFT), solving the Kohn-Sham equations, or within the Hartree-Fock (HF) approximation, solving the Roothaan equations.
+    Hybrid functionals that mix the Hartree-Fock approach with density functional theory are implemented as well.
+    Furthermore, Green's functions methods (GW quasiparticles, and ACFDT-RPA) and many-body perturbation theory (2nd-order Møller-Plesset) are available in VASP.
 
-In VASP, central quantities, like the one-electron orbitals, the electronic charge density, and the local potential are expressed in plane wave basis sets.
-The interactions between the electrons and ions are described using norm-conserving or ultrasoft pseudopotentials, or the projector-augmented-wave method.
-To determine the electronic groundstate, VASP makes use of efficient iterative matrix diagonalisation techniques, like the residual minimisation method with direct inversion of the iterative subspace (RMM-DIIS) or blocked Davidson algorithms.
-These are coupled to highly efficient Broyden and Pulay density mixing schemes to speed up the self-consistency cycle.
+    In VASP, central quantities, like the one-electron orbitals, the electronic charge density, and the local potential are expressed in plane wave basis sets.
+    The interactions between the electrons and ions are described using norm-conserving or ultrasoft pseudopotentials, or the projector-augmented-wave method.
+    To determine the electronic groundstate, VASP makes use of efficient iterative matrix diagonalisation techniques, like the residual minimisation method with direct inversion of the iterative subspace (RMM-DIIS) or blocked Davidson algorithms.
+    These are coupled to highly efficient Broyden and Pulay density mixing schemes to speed up the self-consistency cycle.
 
+## Licensing and Access
 
-!!! note "Licensing Terms and Conditions"
-    Access to VASP is restricted to users who have purchased a license from VASP Software GmbH.
-    CSCS cannot provide free access to the code and needs to inform VASP Software GmbH with an updated list of users.
-    Once you have a license, submit a request on the [CSCS service desk](https://jira.cscs.ch/plugins/servlet/desk) (with a copy of your license) to be added to the `vasp6` unix group, which will grant access to the `vasp` uenv.
-    Please refer to the VASP web site for more information about licensing.
-    Therefore, access to precompiled `VASP.6` executables and library files will be available only to users who have already purchased a `VASP.6` license and upon request will become members of the CSCS unix group `vasp6`.
-    
-    To access VASP follow the [`Accessing Restricted Software`][ref-uenv-restricted-software] guide.
-    Please refer to the [VASP web site](https://www.vasp.at) for more information.
+Access to VASP requires a license from [VASP Software GmbH](https://www.vasp.at).
+Once you have a license, submit a request on the [CSCS service desk](https://jira.cscs.ch/plugins/servlet/desk) (attaching a copy of your license) to be added to the `vasp6` unix group, which grants access to the `vasp` uenv.
+See the [Accessing Restricted Software][ref-uenv-restricted-software] guide for details.
 
-
-## Running VASP
-
-### Running on Daint
-A precompiled uenv containing VASP with MPI, OpenMP, OpenACC, HDF5 and Wannier90 support is available.
-Due to license restrictions, the VASP images are not directly accessible in the same way as other applications.
-
-For accessing VASP uenv images, please see the guide to [accessing restricted software][ref-uenv-restricted-software].
+## Running VASP on Daint
 
 To load the VASP uenv:
 ```bash
 uenv start vasp/v6.5.0:v1 --view=vasp
 ```
-The `vasp_std` , `vasp_ncl`  and `vasp_gam`  executables are now available for use.
-Loading the uenv can also be directly done inside of a Slurm script.
+This makes `vasp_std`, `vasp_ncl`, and `vasp_gam` available.
+The uenv can also be loaded directly inside a Slurm script:
 
 ```bash title="Slurm script for running VASP on a single node"
 #!/bin/bash -l
@@ -68,14 +58,12 @@ srun vasp_std
     This is not required when using the CUDA MPS wrapper for oversubscription of GPUs.
 
 !!! note
-    VASP relies on CUDA-aware MPI, which requires `MPICH_GPU_SUPPORT_ENABLED=1` to be set when using Cray MPICH. On [Daint][ref-cluster-daint], this is set by default and does not have to be included in Slurm scripts.
+    VASP relies on CUDA-aware MPI, which requires `MPICH_GPU_SUPPORT_ENABLED=1` to be set when using Cray MPICH. On [Daint][ref-cluster-daint], this is set by default. It is included in the example above for portability.
 
+## Multiple Tasks per GPU
 
-
-### Multiple Tasks per GPU
-Using more than one task per GPU is possible with VASP and may lead to better GPU utilization.
-However, VASP relies on [NCCL] for efficient communication, but falls back to MPI when using multiple tasks per GPU.
-In many cases, this drawback is the greater factor and it's best to use one task per GPU.
+Running multiple tasks per GPU can improve GPU utilization, but VASP falls back from [NCCL] to MPI in this mode, which often negates the benefit.
+**Start with one task per GPU** and only use multi-task mode if benchmarks show improvement for your workload.
 
 To run with multiple tasks per GPU, a wrapper script is required to start a CUDA MPS service.
 This script can be found at [NVIDIA GH200 GPU nodes: multiple ranks per GPU][ref-slurm-gh200-multi-rank-per-gpu].
